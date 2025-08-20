@@ -2,7 +2,86 @@
 
 ## 🎯 Sumário Executivo
 
-Este projeto implementa um pipeline de dados completo para análise de condições de surf, integrando dados meteorológicos da **Meteomatics** com ratings de surf do **Surfline**. A solução utiliza dbt para criar camadas bronze, silver e gold, transformando dados brutos em insights acionáveis para surfistas e profissionais do setor.
+Este projeto implementa um pipeline de dados completo para análise de condições de surf, integrando dados meteorológicos da **Meteomatics** com ratings de surf do **Surfline**. A solução utiliza dbt para criar camadas bronze, silver e gold, transforma## 🏄‍♂️ Horários Surfáveis - Abordagem Prática
+
+### 🌅 **Conceito de Horários Surfáveis**
+
+Uma das principais descobertas do projeto foi a necessidade de **filtrar apenas os horários que fazem sentido para surf na prática**. Analisando 26,305 horas de dados (24h/dia), identificamos que apenas **50% do tempo é efetivamente surfável**.
+
+#### **⏰ Definição de Períodos Surfáveis:**
+- **Dawn Patrol**: 6h-9h (melhor período - score +10%)
+- **Manhã**: 10h-12h (segundo melhor - score +5%)
+- **Tarde**: 13h-17h (período padrão)
+
+#### **🎯 Consulta SQL Simples para Horários Surfáveis:**
+
+```sql
+-- CONSULTA PRÁTICA: Apenas horários que fazem sentido para surf
+SELECT 
+    datetime_utc,
+    date_br,
+    
+    -- Período surfável
+    CASE 
+        WHEN EXTRACT(HOUR FROM datetime_utc) BETWEEN 6 AND 9 THEN 'Dawn Patrol'
+        WHEN EXTRACT(HOUR FROM datetime_utc) BETWEEN 10 AND 12 THEN 'Manhã'
+        WHEN EXTRACT(HOUR FROM datetime_utc) BETWEEN 13 AND 17 THEN 'Tarde'
+    END AS periodo_surfavel,
+    
+    -- Condições de surf
+    surf_rating_br,
+    surf_rating_br_label,
+    surf_height_avg_m,
+    wind_speed_10m_ms,
+    temperature_2m_celsius,
+    
+    -- Score ajustado por horário premium
+    CASE 
+        WHEN EXTRACT(HOUR FROM datetime_utc) BETWEEN 6 AND 9 THEN surf_rating_br * 1.1   -- Dawn Patrol boost
+        WHEN EXTRACT(HOUR FROM datetime_utc) BETWEEN 10 AND 12 THEN surf_rating_br * 1.05 -- Manhã boost
+        WHEN EXTRACT(HOUR FROM datetime_utc) BETWEEN 13 AND 17 THEN surf_rating_br * 1.0  -- Tarde normal
+    END AS surf_score_ajustado
+
+FROM fact_surf_conditions
+WHERE 
+    -- FILTRO PRINCIPAL: apenas horários surfáveis (6h às 17h)
+    EXTRACT(HOUR FROM datetime_utc) BETWEEN 6 AND 17
+    AND surf_rating_br > 0
+    
+ORDER BY datetime_utc;
+```
+
+#### **📊 Resultados dos Horários Surfáveis:**
+
+| Período | Score Ajustado | % Excelente | Total Horas | Ranking |
+|---------|----------------|-------------|-------------|---------|
+| Dawn Patrol | 2.01 | 1.9% | 4,384h | 🥇 1º |
+| Manhã | 1.91 | 2.1% | 3,288h | 🥈 2º |
+| Tarde | 1.70 | 1.4% | 5,480h | 🥉 3º |
+
+#### **💡 Vantagens desta Abordagem:**
+- ✅ **Simplicidade**: Um SELECT com filtros básicos
+- ✅ **Praticidade**: Foca nos horários que realmente importam
+- ✅ **Eficiência**: Reduz 50% dos dados (24h → 12h surfáveis)
+- ✅ **Realismo**: Melhora métricas em ~3% excluindo horários impraticáveis
+- ✅ **Flexibilidade**: Fácil adaptação para diferentes necessidades
+
+#### **🎯 Para Dashboard ou App:**
+```sql
+-- Para previsão dos próximos dias, adicione:
+AND date_br >= CURRENT_DATE
+AND date_br <= CURRENT_DATE + INTERVAL '7 days'
+
+-- Para alertas de condições excelentes:
+AND surf_rating_br >= 4
+
+-- Para filtrar apenas fins de semana:
+AND EXTRACT(DAYOFWEEK FROM date_br) IN (1, 7)  -- Domingo e Sábado
+```
+
+## 📊 Próximos Passos e Roadmap
+
+### 🎯 **Análises Prioritárias** dados brutos em insights acionáveis para surfistas e profissionais do setor.
 
 ## 📈 O Desafio de Negócio
 
