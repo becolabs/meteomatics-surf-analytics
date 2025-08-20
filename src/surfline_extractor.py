@@ -7,7 +7,6 @@ import os
 import json
 import gzip
 import hashlib
-import re
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 HEADERS = {
@@ -27,10 +26,6 @@ def gerar_datas_de_inicio(data_inicio_str, data_fim_str, intervalo_dias=16):
 
 def _save_raw_payload(raw_dir: str, entity: str, start_date: str, response_json: dict, status_code: int, duration_ms: int):
     """Salva JSON bruto + metadados (landing)."""
-    # Validação simples de formato YYYY-MM-DD
-    if not re.match(r'^\d{4}-\d{2}-\d{2}$', start_date):
-        print(f"[AVISO] start_date inválida '{start_date}' – ignorando salvamento raw desta requisição.")
-        return None
     # Estrutura: raw_dir/entity/start=YYYY-MM-DD/
     base_path = os.path.join(raw_dir, entity, f"start={start_date}")
     os.makedirs(base_path, exist_ok=True)
