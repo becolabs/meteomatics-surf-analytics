@@ -1,0 +1,10 @@
+{
+  "entity": "wind",
+  "start_date": "2022-01-06",
+  "saved_at_utc": "2025-08-20T12:12:13.691860+00:00",
+  "status_code": 200,
+  "hash_sha256": "651a72f1627a20c08c67a05f719195faf07ed848d8aa3b1e496d2e9e74df6aee",
+  "raw_file": "data/landing/surfline_raw/wind/start=2022-01-06/response.json.gz",
+  "duration_ms": 2377,
+  "records_estimated": null
+}

@@ -1,0 +1,10 @@
+{
+  "entity": "swells",
+  "start_date": "2022-03-11",
+  "saved_at_utc": "2025-08-20T12:10:27.182155+00:00",
+  "status_code": 200,
+  "hash_sha256": "58c2db219c9cc97da3ea2fe1311663325873b6ea9927506901c2293d96f29ea6",
+  "raw_file": "data/landing/surfline_raw/swells/start=2022-03-11/response.json.gz",
+  "duration_ms": 3393,
+  "records_estimated": null
+}

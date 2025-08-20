@@ -1,0 +1,10 @@
+{
+  "entity": "sunlight",
+  "start_date": "2020-10-15",
+  "saved_at_utc": "2025-08-20T12:15:03.008515+00:00",
+  "status_code": 200,
+  "hash_sha256": "33184baa1671af1cb098bd01ad691ac260d98ae48f9fdda88ad36e8bb37804d4",
+  "raw_file": "data/landing/surfline_raw/sunlight/start=2020-10-15/response.json.gz",
+  "duration_ms": 68,
+  "records_estimated": null
+}

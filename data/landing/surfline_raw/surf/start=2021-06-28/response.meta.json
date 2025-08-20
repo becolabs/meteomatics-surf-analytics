@@ -1,0 +1,10 @@
+{
+  "entity": "surf",
+  "start_date": "2021-06-28",
+  "saved_at_utc": "2025-08-20T12:08:10.632350+00:00",
+  "status_code": 200,
+  "hash_sha256": "fb52debd605b31bf40c8eb46e25a4f3c06fb53393432585bae008d8e3fbcc0f2",
+  "raw_file": "data/landing/surfline_raw/surf/start=2021-06-28/response.json.gz",
+  "duration_ms": 216,
+  "records_estimated": null
+}

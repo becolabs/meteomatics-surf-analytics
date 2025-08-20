@@ -1,0 +1,10 @@
+{
+  "entity": "tides",
+  "start_date": "2022-10-21",
+  "saved_at_utc": "2025-08-20T12:14:20.353041+00:00",
+  "status_code": 200,
+  "hash_sha256": "e7f19090f5193f891572eee292674356172c7866bf1a0664f01a760b06dffd17",
+  "raw_file": "data/landing/surfline_raw/tides/start=2022-10-21/response.json.gz",
+  "duration_ms": 2488,
+  "records_estimated": null
+}

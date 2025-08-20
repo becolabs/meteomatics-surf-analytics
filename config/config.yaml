@@ -1,0 +1,229 @@
+# ================================================================================
+# CONFIGURAÇÃO DO PIPELINE METEOMATICS - ETL DE DADOS DE SURF
+# ================================================================================
+
+# === CONFIGURAÇÕES GERAIS ===
+project:
+  name: 'meteomatics_surf_analytics'
+  version: '2.0.0'
+  start_date: '2020-01-01'
+  end_date: '2022-12-31'
+  output_dir: 'data/bronze'
+  capture_raw: false
+  raw_dir: 'data/landing/surfline_raw'
+  
+# === CONFIGURAÇÕES DO DBT ===
+dbt:
+  profiles_dir: './dbt_meteomatics'
+  project_dir: './dbt_meteomatics'
+  target: 'dev'
+  models:
+    silver: 'models.meteomatics.silver'
+    gold: 'models.meteomatics.gold'
+    marts: 'models.meteomatics.marts'
+
+# === REGRAS DE NEGÓCIO PARAMETRIZÁVEIS ===
+business_rules:
+  
+  # Classificações de Temperatura (°C)
+  temperature:
+    cold: 18          # Abaixo desta temperatura = "Frio"
+    mild: 24          # Entre cold e mild = "Ameno"  
+    hot: 30           # Entre mild e hot = "Quente"
+                      # Acima de hot = "Muito Quente"
+  
+  # Classificações de Vento (m/s)
+  wind:
+    calm: 3           # Abaixo = "Vento Calmo"
+    moderate: 7       # Entre calm e moderate = "Vento Moderado"
+    strong: 12        # Entre moderate e strong = "Vento Forte"
+                      # Acima de strong = "Vento Muito Forte"
+    
+    # Vento forte para flags
+    windy_threshold: 10
+  
+  # Classificações de Precipitação (mm/h)
+  precipitation:
+    light: 2          # Entre 0.1 e light = "Chuva Fraca"
+    moderate: 10      # Entre light e moderate = "Chuva Moderada"
+                      # Acima de moderate = "Chuva Forte"
+  
+  # Classificações de Pressão Atmosférica (hPa)
+  pressure:
+    low: 1000         # Abaixo = "Baixa Pressão"
+    normal: 1020      # Entre low e normal = "Pressão Normal"
+                      # Acima de normal = "Alta Pressão"
+  
+  # Classificações de Ondas
+  waves:
+    # Altura significativa (metros)
+    calm_sea: 0.5     # Abaixo = "Mar Calmo"
+    moderate_sea: 1.5 # Entre calm e moderate = "Mar Moderado"
+    rough_sea: 3.0    # Entre moderate e rough = "Mar Agitado"
+                      # Acima de rough = "Mar Muito Agitado"
+    
+    # Período das ondas (segundos)
+    short_period: 5   # Abaixo = "Período Curto"
+    medium_period: 10 # Entre short e medium = "Período Médio" 
+                      # Acima de medium = "Período Longo"
+  
+  # Classificações de Swell
+  swell:
+    # Altura (metros)
+    small: 0.6        # Abaixo = "Swell Pequeno" (~2 pés)
+    medium: 1.2       # Entre small e medium = "Swell Médio" (~4 pés)
+    big: 2.4          # Entre medium e big = "Swell Grande" (~8 pés)
+                      # Acima de big = "Swell Muito Grande"
+    
+    # Período para qualidade
+    quality_period_min: 10    # Período mínimo para "Swell de Qualidade"
+    quality_height_min: 0.6   # Altura mínima para "Swell de Qualidade" (~2 pés)
+    
+    # Período (segundos)
+    short_period: 8
+    medium_period: 12
+    long_period: 16
+    
+    # Flag de ondas grandes
+    big_wave_threshold: 1.8   # metros (~6 pés)
+    
+    # Flag de bom para surf
+    surf_height_min: 0.9      # metros (~3 pés)
+    surf_period_min: 10       # segundos
+  
+  # Qualidade para Surf (regras combinadas)
+  surf_quality:
+    excellent:
+      min_height: 0.9         # metros (altura média) (~3 pés)
+      max_wind: 6             # m/s
+      max_precipitation: 2    # mm/h
+    
+    good:
+      min_height: 0.6         # metros (~2 pés)
+      max_wind: 8             # m/s
+    
+    regular:
+      min_height: 0.3         # metros (~1 pé)
+  
+  # Condições Gerais
+  conditions:
+    ideal:
+      max_precipitation: 0    # mm/h
+      max_wind: 5             # m/s
+    
+    good:
+      max_precipitation: 0    # mm/h  
+      max_wind: 8             # m/s
+    
+    calm_rain:              # "Chuva mas Vento Calmo"
+      min_precipitation: 0.1  # mm/h
+      max_wind: 5             # m/s
+
+# === CONFIGURAÇÕES DE API ===
+api:
+  base_url: 'https://services.surfline.com/kbyg/spots/forecasts/'
+  spot_id: '5842041f4e65fad6a7708cee'
+  access_token: '81d4449d2bce5ec9907ebaa1f95e66d3256a0283'
+
+# === CONFIGURAÇÕES POR ENTIDADE ===
+entities:
+  rating:
+    json_path: ['data', 'rating']
+    params: {}
+  
+  surf:
+    json_path: ['data', 'surf']
+    params:
+      'units[waveHeight]': 'M'
+
+  swells:
+    json_path: ['data', 'swells']
+    params:
+      'units[swellHeight]': 'M'
+    normalize_config:
+      record_path: ['swells']
+      meta: ['timestamp', 'utcOffset', 'power']
+      meta_prefix: 'total_'
+
+  wind:
+    json_path: ['data', 'wind']
+    params:
+      'units[windSpeed]': 'KPH'
+      'corrected': 'true'
+
+  tides:
+    json_path: ['data', 'tides']
+    params:
+      'units[tideHeight]': 'M'
+      'days': 17
+
+  sunlight:
+    json_path: ['data', 'sunlight']
+    params: {}
+
+# === CONFIGURAÇÕES DE DATA MARTS ===
+data_marts:
+  
+  # Mart de Análise de Chuva vs Surf
+  rain_surf_analysis:
+    enabled: true
+    description: "Análise da relação entre chuva e condições de surf"
+    
+  # Mart de Qualidade de Surf por Período
+  surf_quality_trends:
+    enabled: true
+    description: "Tendências de qualidade de surf por período temporal"
+    
+  # Mart de Condições Ideais
+  ideal_conditions:
+    enabled: true  
+    description: "Identificação de condições ideais para surf"
+    
+  # Mart de Análise de Vento
+  wind_analysis:
+    enabled: true
+    description: "Análise detalhada dos padrões de vento"
+    
+  # Mart de Padrões Sazonais
+  seasonal_patterns:
+    enabled: true
+    description: "Padrões sazonais de surf e meteorologia"
+    
+  # Mart de Alertas e Previsões
+  surf_alerts:
+    enabled: true
+    description: "Sistema de alertas para melhores condições"
+  rating:
+    json_path: ['data', 'rating']
+    params: {}
+  
+  surf:
+    json_path: ['data', 'surf']
+    params:
+      'units[waveHeight]': 'M'
+
+  swells:
+    json_path: ['data', 'swells']
+    params:
+      'units[swellHeight]': 'M'
+    # Configuração especial de normalização para o swell
+    normalize_config:
+      record_path: ['swells']
+      meta: ['timestamp', 'utcOffset', 'power']
+      meta_prefix: 'total_'
+
+  wind:
+    json_path: ['data', 'wind']
+    params:
+      'units[windSpeed]': 'KPH'
+      'corrected': 'true'
+
+  tides:
+    json_path: ['data', 'tides']
+    params:
+      'units[tideHeight]': 'M'
+      'days': 17 # Marés têm um intervalo ligeiramente diferente
+
+  sunlight:
+    json_path: ['data', 'sunlight']
+    params: {}

@@ -1,0 +1,10 @@
+{
+  "entity": "rating",
+  "start_date": "2022-12-24",
+  "saved_at_utc": "2025-08-20T12:07:11.724395+00:00",
+  "status_code": 200,
+  "hash_sha256": "076ac90d54909f88e87dbfd4561e8920103b5e3afa51dd393d9a719c76d559e2",
+  "raw_file": "data/landing/surfline_raw/rating/start=2022-12-24/response.json.gz",
+  "duration_ms": 3287,
+  "records_estimated": null
+}

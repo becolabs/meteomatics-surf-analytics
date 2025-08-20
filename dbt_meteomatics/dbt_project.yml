@@ -1,0 +1,101 @@
+# dbt_project.yml
+
+name: 'meteomatics'
+version: '1.0.0'
+config-version: 2
+
+# This setting configures which "profile" dbt uses for this project.
+profile: 'meteomatics'
+
+# These configurations specify where dbt should look for different types of files.
+model-paths: ["models"]
+analysis-paths: ["analyses"]
+test-paths: ["tests"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
+
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+# Configuring models
+models:
+  meteomatics:
+    # Config for all files under models/staging/
+    bronze:
+      +materialized: external
+    silver:
+      +materialized: table
+      +file_format: delta
+    gold:
+      +materialized: table
+      +file_format: delta
+    marts:
+      +materialized: table
+      +file_format: delta
+
+# Global configurations
+vars:
+  # Data paths
+  bronze_data_path: "../data/bronze"
+  silver_data_path: "../data/silver"
+  gold_data_path: "../data/gold"
+  
+  # Project timezone
+  project_timezone: "America/Sao_Paulo"
+  
+  # Business Rules - Temperature (°C)
+  temperature_cold: 18
+  temperature_mild: 24
+  temperature_hot: 30
+  
+  # Business Rules - Wind (m/s)
+  wind_calm: 3
+  wind_moderate: 7
+  wind_strong: 12
+  windy_threshold: 10
+  
+  # Business Rules - Precipitation (mm/h)
+  precipitation_light: 2
+  precipitation_moderate: 10
+  
+  # Business Rules - Pressure (hPa)
+  pressure_low: 1000
+  pressure_normal: 1020
+  
+  # Business Rules - Waves (meters)
+  waves_calm_sea: 0.5
+  waves_moderate_sea: 1.5
+  waves_rough_sea: 3.0
+  waves_short_period: 5
+  waves_medium_period: 10
+  
+  # Business Rules - Swell (meters)
+  swell_small: 0.6
+  swell_medium: 1.2
+  swell_big: 2.4
+  swell_quality_period_min: 10
+  swell_quality_height_min: 0.6
+  swell_short_period: 8
+  swell_medium_period: 12
+  swell_long_period: 16
+  big_wave_threshold: 1.8
+  surf_height_min: 0.9
+  surf_period_min: 10
+  
+  # Business Rules - Surf Quality
+  surf_excellent_min_height: 0.9
+  surf_excellent_max_wind: 6
+  surf_excellent_max_precipitation: 2
+  surf_good_min_height: 0.6
+  surf_good_max_wind: 8
+  surf_regular_min_height: 0.3
+  
+  # Business Rules - Ideal Conditions
+  ideal_max_precipitation: 0
+  ideal_max_wind: 5
+  good_max_precipitation: 0
+  good_max_wind: 8
+  calm_rain_min_precipitation: 0.1
+  calm_rain_max_wind: 5
